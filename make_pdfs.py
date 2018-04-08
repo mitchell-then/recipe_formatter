@@ -27,6 +27,8 @@ def main():
         # skip special "images" directory
         if "images" in dirpath:
             continue
+            
+        pdf_dest_dir = dirpath.replace(src_dir, dest_dir)
 
         for filename in filenames:
             # skip hidden files
@@ -56,11 +58,10 @@ def main():
             subprocess.call(['pdflatex', output_filename],
                             stdout=subprocess.PIPE)
 
-            dest_dir = dirpath.replace(src_dir, dest_dir)
-            os.makedirs(dest_dir, exist_ok=True)
+            os.makedirs(pdf_dest_dir, exist_ok=True)
 
             shutil.copyfile(os.path.join(temp_dir, pdf_filename), os.path.abspath(
-                os.path.join(dest_dir, pdf_filename)))
+                os.path.join(pdf_dest_dir, pdf_filename)))
 
     shutil.rmtree(temp_dir)
 
@@ -73,7 +74,7 @@ def _get_blank(item):
 
 def generate_latex(recipe, src_dir):
     latex = r"""
-\1class{book}
+\documentclass{book}
 
 \usepackage{graphicx}
 \usepackage[margin=0.5in]{geometry}
