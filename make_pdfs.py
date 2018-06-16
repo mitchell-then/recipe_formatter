@@ -46,8 +46,17 @@ def main():
                 print("Not valid YAML: {}".format(
                     os.path.join(dirpath, filename)))
                 continue
+            except Exception as e:
+                print("Exception for file {}: {}".format(
+                    os.path.join(dirpath, filename), str(e)))
+                continue
 
-            latex = generate_latex(recipe, src_dir)
+            try:
+                latex = generate_latex(recipe, src_dir)
+            except Exception as e:
+                print("Invalid recipe {}; error: {}".format(
+                    os.path.join(dirpath, filename), e))
+                continue
 
             output_filename = os.path.splitext(filename)[0] + '.tex'
             pdf_filename = os.path.splitext(filename)[0] + '.pdf'
@@ -93,6 +102,8 @@ def generate_latex(recipe, src_dir):
     # image
     if recipe.get('image') is not None:
         image = os.path.abspath(os.path.join(src_dir, recipe['image']))
+        if not os.path.isfile(image):
+            raise Exception('Specified image does not exist: {}'.format(image))
         latex += r'\begin{center}' + "\n"
         latex += r'\fbox{\includegraphics[height=2in]{' + image + r'}}' + "\n"
         latex += r'\end{center}' + "\n"
@@ -116,7 +127,7 @@ def generate_latex(recipe, src_dir):
             for ingredient in step.get('ingredients'):
                 text += ingredient + ' \\newline' + "\n"
             text += "&\n"
-            text += step.get('text') + "\\\\ \n"
+            text += _get_blank(step.get('text')) + "\\\\ \n"
 
             latex += text
             latex += r"""
@@ -128,7 +139,7 @@ def generate_latex(recipe, src_dir):
             latex += r"""
 \begin{center}
 \begin{tabularx}{\textwidth}{ >{\raggedright}X }
-""" + step.get('text') + r"""\\
+""" + _get_blank(step.get('text')) + r"""\\
 \end{tabularx}
 \end{center}
 """
