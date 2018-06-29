@@ -11,6 +11,12 @@ import tempfile
 import yaml
 
 
+def print_file_error(filename, message, detailed_message=''):
+    print(f"{filename}: {message}")
+    if detailed_message:
+        print(f"\t{detailed_message}")
+
+
 def main():
     if len(sys.argv) != 3:
         sys.stderr.write("Usage: {} <src dir> <dest dir>\n".format(
@@ -23,7 +29,7 @@ def main():
     temp_dir = tempfile.mkdtemp()
     os.chdir(temp_dir)
 
-    for (dirpath, dirnames, filenames) in os.walk(src_dir):
+    for (dirpath, _, filenames) in os.walk(src_dir):
         # skip special "images" directory
         if "images" in dirpath:
             continue
@@ -42,20 +48,17 @@ def main():
             try:
                 with open(os.path.join(dirpath, filename), 'r') as f:
                     recipe = yaml.load(f)
-            except yaml.scanner.ScannerError:
-                print("Not valid YAML: {}".format(
-                    os.path.join(dirpath, filename)))
+            except yaml.scanner.ScannerError as e:
+                print_file_error(filename, "Not valid YAML")
                 continue
             except Exception as e:
-                print("Exception for file {}: {}".format(
-                    os.path.join(dirpath, filename), str(e)))
+                print_file_error(filename, "Exception for file", str(e))
                 continue
 
             try:
                 latex = generate_latex(recipe, src_dir)
             except Exception as e:
-                print("Invalid recipe {}; error: {}".format(
-                    os.path.join(dirpath, filename), e))
+                print_file_error(filename, "Invalid recipe", str(e))
                 continue
 
             output_filename = os.path.splitext(filename)[0] + '.tex'
@@ -64,8 +67,12 @@ def main():
             with open(output_filename, 'w') as f:
                 f.write(latex)
 
-            subprocess.call(['pdflatex', output_filename],
+            cmd = subprocess.run(['pdflatex', output_filename],
                             stdout=subprocess.PIPE)
+            
+            if cmd.returncode != 0:
+                print("Something bad happened (likely bad latex): {}".format(cmd.stdout))
+                exit(1)
 
             os.makedirs(pdf_dest_dir, exist_ok=True)
 
@@ -109,18 +116,26 @@ def generate_latex(recipe, src_dir):
         latex += r'\end{center}' + "\n"
 
     # header
+    servings = _get_blank(recipe.get('servings'))
+    if servings:
+        try:
+            int(servings)
+            servings = f"{servings} servings"
+        except:
+            pass
+            
     latex += r'\begin{center}' + "\n"
     latex += r'\begin{tabularx}{\textwidth}{ X r }' + "\n"
-    latex += r'{\Huge \bfseries {' + str(_get_blank(recipe.get('name'))) + r'}} & ' + str(
-        _get_blank(recipe.get('servings'))) + r' \\' + "\n"
+    latex += r'{\Huge \bfseries {' + str(_get_blank(recipe.get('name'))) + r'}} & ' + servings + r' \\' + "\n"
     latex += r'\hline' + "\n"
     latex += r'& ' + str(_get_blank(recipe.get('time'))) + r' \\' + "\n"
     latex += r'\end{tabularx}' + "\n"
     latex += r'\end{center}' + "\n"
 
     for step in recipe.get('steps', []):
-
-        if step.get('ingredients') is not None:
+        if 'section' in step:
+            latex += r'{\LARGE \bfseries { ' + step['section'] + r'}}' + "\n"
+        elif step.get('ingredients') is not None:
             latex += r'\begin{center}' + "\n"
             latex += r'\begin{tabularx}{\textwidth}{ >{\raggedright}p{3in} >{\raggedright}X }' + "\n"
             text = ''
@@ -145,10 +160,11 @@ def generate_latex(recipe, src_dir):
 """
 
     if recipe.get('notes') is not None:
-        latex += r"""
+        latex += r"""\noindent\rule{\textwidth}{0.4pt} \\ \\ \\
+{\LARGE \bfseries {Notes}} 
 \begin{center}
 \begin{tabularx}{\textwidth}{ >{\raggedright}X }
-{\Large \bfseries Notes: }""" + recipe.get('notes') + r"""\\
+""" + recipe.get('notes') + r"""\\
 \end{tabularx}
 \end{center}
 """
