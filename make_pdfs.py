@@ -17,7 +17,7 @@ def print_file_error(filename, message, detailed_message=''):
         print(f"\t{detailed_message}")
 
 
-def main():
+def main(debug=False):
     if len(sys.argv) != 3:
         sys.stderr.write("Usage: {} <src dir> <dest dir>\n".format(
             os.path.basename(__file__)))
@@ -67,17 +67,22 @@ def main():
             with open(output_filename, 'w') as f:
                 f.write(latex)
 
-            cmd = subprocess.run(['pdflatex', output_filename],
-                            stdout=subprocess.PIPE)
-            
-            if cmd.returncode != 0:
-                print("Something bad happened (likely bad latex): {}".format(cmd.stdout))
-                exit(1)
+            if not debug:
+                cmd = subprocess.run(['pdflatex', output_filename],
+                                stdout=subprocess.PIPE)
+                
+                if cmd.returncode != 0:
+                    print("Something bad happened (likely bad latex): {}".format(cmd.stdout))
+                    exit(1)
 
-            os.makedirs(pdf_dest_dir, exist_ok=True)
+                os.makedirs(pdf_dest_dir, exist_ok=True)
 
-            shutil.copyfile(os.path.join(temp_dir, pdf_filename), os.path.abspath(
-                os.path.join(pdf_dest_dir, pdf_filename)))
+                shutil.copyfile(os.path.join(temp_dir, pdf_filename), os.path.abspath(
+                    os.path.join(pdf_dest_dir, pdf_filename)))
+
+    if debug:
+        print(f"latex dir: {temp_dir}")
+        input('continue?')
 
     shutil.rmtree(temp_dir)
 
@@ -180,4 +185,4 @@ def generate_latex(recipe, src_dir):
 
 
 if __name__ == "__main__":
-    main()
+    main(debug=True)
