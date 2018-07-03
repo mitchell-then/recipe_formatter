@@ -14,21 +14,21 @@
 
 \begin{large}       % for larger text
 
-{% if image %}
+{% if recipe.image %}
 \begin{center}
-\fbox{\includegraphics[height=2in]{<{ image }>}}
+\fbox{\includegraphics[height=2in]{<{ recipe.image }>}}
 \end{center}
 {% endif %}
 
 \begin{center}
 \begin{tabularx}{\textwidth}{ X r }
-{\Huge \bfseries {<{ name }>}} & <{ servings }> \\
+{\Huge \bfseries {<{ recipe.name }>}} & <{ recipe.servings | default('') }> \\
 \hline
-& <{ time }> \\
+& <{ recipe.time | default('') }> \\
 \end{tabularx}
 \end{center}
 
-{% for step in steps %}
+{% for step in recipe.steps %}
     {% if 'section' in step %}
         {\LARGE \bfseries {<{ step.section }>}}
     {% elif 'ingredients' in step %}
@@ -52,12 +52,13 @@
     {% endif %}
 {% endfor %}
 
-{% if notes %}
+{% if 'notes' in recipe %}
+    \vspace*{\fill}
     \noindent\rule{\textwidth}{0.4pt} \\ \\ \\
     {\LARGE \bfseries {Notes}}
     \begin{center}
     \begin{tabularx}{\textwidth}{ >{\raggedright}X }
-    <{ notes }> \\
+    <{ recipe.notes }> \\
     \end{tabularx}
     \end{center}
 {% endif %}

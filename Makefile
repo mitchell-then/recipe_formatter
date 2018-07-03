@@ -1,7 +1,10 @@
-.PHONY: build dev_venv
+.PHONY: build run dev_venv
 
 build:
 	docker build -t "latex" .
+
+run:
+	docker run --rm -v $(RPATH):/data latex /root/make_pdfs.py /data/Recipes_src/ /data/Recipes/
 
 dev_venv:
 	python3 -m venv dev
