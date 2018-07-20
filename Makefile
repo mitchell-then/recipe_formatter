@@ -1,3 +1,5 @@
+# Author: Mitchell Then
+
 .PHONY: build run dev_venv
 
 build:
