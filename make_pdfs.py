@@ -58,7 +58,7 @@ def text_step_is_valid(step: Dict) -> bool:
     return (step['text'] and len(step) == 1)
 
 
-def validate_recipe(recipe: Dict, src_dir: str) -> list:
+def validate_recipe(recipe: Dict, src_dir: str) -> List:
     """ Determine if a recipe is valid.
 
     Args:
@@ -172,6 +172,11 @@ def create_recipe_latex_file(file_content: str, output_filename: str) -> None:
 
 
 def get_args():
+    """ Setup script arguments.
+
+    Returns:
+        Configured ArgumentParser.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("src_dir", type=str, help="directory containing recipe sources")
     parser.add_argument("dest_dir", type=str, help="destination directory for PDFs")
@@ -183,13 +188,14 @@ def main():
 
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)
+        temp_dest = os.path.join(temp_dir, 'temp_dest') + os.sep
 
         for (dirpath, _, filenames) in os.walk(args.src_dir):
             # skip special "images" directory
             if "images" in dirpath:
                 continue
 
-            pdf_dest_dir = dirpath.replace(args.src_dir, args.dest_dir)
+            pdf_temp_dest = dirpath.replace(args.src_dir, temp_dest)
 
             for filename in filenames:
                 # skip hidden files and files that are not YAML
@@ -216,10 +222,14 @@ def main():
                     print("Something bad happened (likely bad latex): {}".format(cmd.stdout))
                     exit(1)
 
-                os.makedirs(pdf_dest_dir, exist_ok=True)
+                os.makedirs(pdf_temp_dest, exist_ok=True)
 
                 shutil.copyfile(os.path.join(temp_dir, pdf_filename), os.path.abspath(
-                    os.path.join(pdf_dest_dir, pdf_filename)))
+                    os.path.join(pdf_temp_dest, pdf_filename)))
+
+        if os.path.exists(args.dest_dir):
+            shutil.rmtree(args.dest_dir)
+        shutil.copytree(temp_dest, args.dest_dir)
 
 
 if __name__ == "__main__":
