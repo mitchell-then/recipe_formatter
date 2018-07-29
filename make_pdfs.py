@@ -11,10 +11,8 @@ import subprocess
 import tempfile
 import yaml
 
-from typing import Any, Dict, List
 
-
-def print_file_error(filename: str, message: str, detailed_message: str = '') -> None:
+def print_file_error(filename, message, detailed_message=''):
     """ Print an error for a file.
 
     Args:
@@ -27,7 +25,7 @@ def print_file_error(filename: str, message: str, detailed_message: str = '') ->
         print(f"\t{line}")
 
 
-def create_invalid_step_error(step_type: str, step: Dict) -> str:
+def create_invalid_step_error(step_type, step):
     """ Create a formatted error message for invalid steps.
 
     Args:
@@ -43,22 +41,22 @@ def create_invalid_step_error(step_type: str, step: Dict) -> str:
     return "\n".join(error_lines)
 
 
-def section_step_is_valid(step: Dict) -> bool:
+def section_step_is_valid(step):
     """ Return bool if section step is valid """
     return (step['section'] and len(step) == 1)
 
 
-def ingredients_step_is_valid(step: Dict) -> bool:
+def ingredients_step_is_valid(step):
     """ Return bool if ingredients step is valid """
     return (step['ingredients'] and 'text' in step and step['text'] and len(step) == 2)
 
 
-def text_step_is_valid(step: Dict) -> bool:
+def text_step_is_valid(step):
     """ Return bool if text step is valid """
     return (step['text'] and len(step) == 1)
 
 
-def validate_recipe(recipe: Dict, src_dir: str) -> List:
+def validate_recipe(recipe, src_dir):
     """ Determine if a recipe is valid.
 
     Args:
@@ -103,7 +101,7 @@ def validate_recipe(recipe: Dict, src_dir: str) -> List:
     return errors
 
 
-def create_recipe(dirpath: str, filename: str, src_dir: str) -> Any:
+def create_recipe(dirpath, filename, src_dir):
     """ Load, validate, and return a recipe from a given a recipe YAML file.
 
     Args:
@@ -136,7 +134,7 @@ def create_recipe(dirpath: str, filename: str, src_dir: str) -> Any:
     return recipe
 
 
-def template_recipe(recipe: Dict) -> str:
+def template_recipe(recipe):
     """ Produce LaTeX file content from recipe.
 
     Args:
@@ -154,7 +152,7 @@ def template_recipe(recipe: Dict) -> str:
     return env.get_template('recipe.tex.j2').render(recipe=recipe)
 
 
-def create_recipe_latex_file(file_content: str, output_filename: str) -> None:
+def create_recipe_latex_file(file_content, output_filename):
     """ Write LaTeX file content to file.
 
     Args:
