@@ -1,0 +1,67 @@
+\documentclass{book}
+
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{tabularx}
+\usepackage{nicefrac}
+\usepackage{gensymb}
+
+\pagenumbering{gobble}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\begin{large}       % for larger text
+
+{% if recipe.image %}
+\begin{center}
+\fbox{\includegraphics[height=2in]{<{ recipe.image }>}}
+\end{center}
+{% endif %}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{ X r }
+{\Huge \bfseries {<{ recipe.name }>}} & <{ recipe.servings | default('') }> \\
+\hline
+& <{ recipe.time | default('') }> \\
+\end{tabularx}
+\end{center}
+
+{% for step in recipe.steps %}
+    {% if 'section' in step %}
+        {\LARGE \bfseries {<{ step.section }>}}
+    {% elif 'ingredients' in step %}
+        \begin{center}
+        \begin{tabularx}{\textwidth}{ >{\raggedright}p{3in} >{\raggedright}X }
+        {% for ingredient in step.ingredients %}
+            <{ ingredient }> \newline
+        {% endfor %}
+        &
+        <{ step.text }> \\
+
+        \end{tabularx}
+        \end{center}
+
+    {% else %}
+        \begin{center}
+        \begin{tabularx}{\textwidth}{ >{\raggedright}X }
+        <{ step.text | default('') }> \\
+        \end{tabularx}
+        \end{center}
+    {% endif %}
+{% endfor %}
+
+{% if 'notes' in recipe %}
+    \vspace*{\fill}
+    \noindent\rule{\textwidth}{0.4pt} \\ \\ \\
+    {\LARGE \bfseries {Notes}}
+    \begin{center}
+    \begin{tabularx}{\textwidth}{ >{\raggedright}X }
+    <{ recipe.notes }> \\
+    \end{tabularx}
+    \end{center}
+{% endif %}
+
+\end{large}
+\end{document}

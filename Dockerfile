@@ -1,5 +1,7 @@
 # Author: Mitchell Then
 
+# source for latex install: https://tex.stackexchange.com/q/66348
+
 FROM ubuntu:17.10
 
 RUN apt-get update -q && apt-get install -qy \
@@ -9,9 +11,10 @@ RUN apt-get update -q && apt-get install -qy \
 
 COPY requirements.txt /root/requirements.txt
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r /root/requirements.txt
 
 COPY make_pdfs.py /root/make_pdfs.py
+COPY recipe.tex.j2 /root/recipe.tex.j2
 
 WORKDIR /data
 VOLUME [ "/data" ]
